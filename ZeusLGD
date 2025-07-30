@@ -31,7 +31,7 @@ end
 setupAntiAFK()
 
 -- Create Main Window
-local window = library:AddWindow("Zeus Farm", {
+local window = library:AddWindow("Legends Hub | Free Version", {
 	main_color = Color3.fromRGB(34, 129, 231),
 	min_size = Vector2.new(500, 500),
 	can_resize = true,
@@ -42,7 +42,7 @@ local mainTab = window:AddTab("Main")
 local farmPlusTab = window:AddTab("Farm")
 mainTab:Show() -- Show this tab by default
 
-mainTab:AddLabel("ZeusLGD Script")
+mainTab:AddLabel("By: ZeusLGD")
 
 -- Add Anti-AFK toggle
 local antiAFKEnabled = true
@@ -464,49 +464,7 @@ for _, workoutType in ipairs(workoutTypes) do
 end
 
 -- OP Things/Farms Folder
-local opThingsFolder = mainTab:AddFolder("Op Farm")
-rebirthFarmFolder:AddTextBox("Target Rebirth )",
-function(text)
-	targetRebirth = tonumber(text) or math.huge
-end)
-
--- Variable to store the position lock connection
-local positionLockConnection = nil
-
--- Function to lock player position
-local function lockPlayerPosition(position)
-	if positionLockConnection then
-		positionLockConnection:Disconnect()
-	end
-
-	positionLockConnection = game:GetService("RunService").Heartbeat:Connect(function()
-		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-			player.Character.HumanoidRootPart.CFrame = position
-		end
-	end)
-end
-
--- Function to unlock player position
-local function unlockPlayerPosition()
-	if positionLockConnection then
-		positionLockConnection:Disconnect()
-		positionLockConnection = nil
-	end
-end
-
--- Add position lock toggle
-rebirthFarmFolder:AddSwitch("Lock Position", function(bool)
-	if bool then
-		-- Get current position and lock it
-		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-			local currentPosition = player.Character.HumanoidRootPart.CFrame
-			lockPlayerPosition(currentPosition)
-		end
-	else
-		-- Unlock position
-		unlockPlayerPosition()
-	end
-end)
+local opThingsFolder = mainTab:AddFolder("OP Things/Farms")
 
 local packFarm = rebirthFarmFolder:AddSwitch("Rebirth Farm", function(bool)
 	isRunning = bool
@@ -522,44 +480,65 @@ local packFarm = rebirthFarmFolder:AddSwitch("Rebirth Farm", function(bool)
 			end
 
 			unequipAllPets()
-			task.wait(0.2)
+			task.wait(0.3)
 			equipUniquePet("Swift Samurai")
 
-			-- Subloop pra fazer rep até força atingir o necessário
-			while isRunning and player.leaderstats.Strength.Value < rebirthCost do
+			-- Farm força até atingir o necessário
+			local repTimer = 0
+			while isRunning and player.leaderstats.Strength.Value < rebirthCost and repTimer < 60 do
 				for i = 1, 10 do
 					player.muscleEvent:FireServer("rep")
 				end
-				task.wait(0.04)
+				task.wait(0.05)
+				repTimer += 0.05
 			end
 
-			-- Só equipa Tribal depois de atingir o rebirthCost
+			-- Falhou ao atingir força? Tenta novamente no próximo ciclo
+			if player.leaderstats.Strength.Value < rebirthCost then
+				warn("Não conseguiu atingir força para rebirth.")
+				continue
+			end
+
 			unequipAllPets()
-			task.wait(0.2)
+			task.wait(0.3)
 			equipUniquePet("Tribal Overlord")
-			task.wait(0.4)
+			task.wait(0.5)
 
 			local machine = findMachine("Jungle Bar Lift")
-			if machine and machine:FindFirstChild("interactSeat") then
+			if machine and machine:FindFirstChild("interactSeat") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
 				player.Character.HumanoidRootPart.CFrame = machine.interactSeat.CFrame * CFrame.new(0, 3, 0)
+
+				local timer = 0
+				local timeout = 5
 				repeat
-					task.wait(0.25)
+					task.wait(0.5)
 					pressE()
-				until player.Character.Humanoid.Sit
+					timer += 0.5
+				until (player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Sit) or timer >= timeout
+			else
+				warn("Máquina ou personagem não disponível.")
 			end
 
+			-- Tenta dar rebirth
 			local initialRebirths = player.leaderstats.Rebirths.Value
+			local rebirthTimer = 0
+			local maxRebirthTime = 10
+
 			repeat
 				ReplicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
-				task.wait(0.5)
-			until player.leaderstats.Rebirths.Value > initialRebirths or not isRunning
+				task.wait(1)
+				rebirthTimer += 1
+			until player.leaderstats.Rebirths.Value > initialRebirths or rebirthTimer >= maxRebirthTime or not isRunning
+
+			if player.leaderstats.Rebirths.Value == initialRebirths then
+				warn("Rebirth falhou após múltiplas tentativas.")
+			end
 
 			if not isRunning then break end
-			task.wait(0.2)
+			task.wait(0.6)
 		end
 	end)
 end)
-
 
 
 local frameToggle = rebirthFarmFolder:AddSwitch("Hide Frames", function(bool)
@@ -627,7 +606,6 @@ local speedGrind = rebirthFarmFolder:AddSwitch("Fast Strength", function(bool)
 		end
 	end)
 end)
-
 
 
 local autoRockFolder = farmPlusTab:AddFolder("Auto Rock")
@@ -918,7 +896,7 @@ local targetSwitch = rebirthsFolder:AddSwitch("Auto Rebirth Target", function(bo
 			end
 		end)
 	end
-end, "Renacimento automático em busca do objetivo")
+end, "Renacimiento automático em busca do objetivo")
 
 infiniteSwitch = rebirthsFolder:AddSwitch("Auto Rebirth (Infinite)", function(bool)
 	_G.infiniteRebirthActive = bool
@@ -2077,24 +2055,66 @@ timeDropdown:Add("Midnight")
 local rebirthFarmFolder = miscTab:AddFolder("Premium Farm")
 
 local function unequipAllPets()
-	local petsFolder = player.petsFolder
+	local petsFolder = player:FindFirstChild("petsFolder")
+	if not petsFolder then return end
+
 	for _, folder in pairs(petsFolder:GetChildren()) do
 		if folder:IsA("Folder") then
 			for _, pet in pairs(folder:GetChildren()) do
-				ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+				if pet:IsA("Folder") or pet:IsA("Model") then
+					ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+				end
 			end
 		end
 	end
+
 	task.wait(0.1)
 end
 
+local function isPetEquipped(petName)
+	local equipped = player:FindFirstChild("equippedPets")
+	if not equipped then return false end
+
+	for _, pet in pairs(equipped:GetChildren()) do
+		if pet.Name == petName then
+			return true
+		end
+	end
+	return false
+end
+
 local function equipUniquePet(petName)
-	unequipAllPets()
-	task.wait(0.01)
-	for _, pet in pairs(player.petsFolder.Unique:GetChildren()) do
+	local uniqueFolder = player.petsFolder:FindFirstChild("Unique")
+	if not uniqueFolder then
+		warn("Unique folder não encontrado.")
+		return
+	end
+
+	local petFound = false
+
+	for _, pet in pairs(uniqueFolder:GetChildren()) do
 		if pet.Name == petName then
 			ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+			petFound = true
+
+			-- Aguarda até o pet realmente equipar
+			local timeout = 5
+			local timer = 0
+			repeat
+				task.wait(0.2)
+				timer += 0.2
+			until isPetEquipped(petName) or timer >= timeout
+
+			if timer >= timeout then
+				warn("Falha ao equipar pet: " .. petName)
+			end
+
+			break
 		end
+	end
+
+	if not petFound then
+		warn("Pet não encontrado: " .. tostring(petName))
 	end
 end
 
@@ -2122,6 +2142,49 @@ local function useOneEgg()
 	ReplicatedStorage.rEvents.proteinEggEvent:FireServer("useEgg")
 end
 
+rebirthFarmFolder:AddLabel("OP Rebirth Farm (From Zeus)")
+
+rebirthFarmFolder:AddTextBox("Target Rebirth )", function(text)
+	targetRebirth = tonumber(text) or math.huge
+end)
+
+-- Variable to store the position lock connection
+local positionLockConnection = nil
+
+-- Function to lock player position
+local function lockPlayerPosition(position)
+	if positionLockConnection then
+		positionLockConnection:Disconnect()
+	end
+
+	positionLockConnection = game:GetService("RunService").Heartbeat:Connect(function()
+		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+			player.Character.HumanoidRootPart.CFrame = position
+		end
+	end)
+end
+
+-- Function to unlock player position
+local function unlockPlayerPosition()
+	if positionLockConnection then
+		positionLockConnection:Disconnect()
+		positionLockConnection = nil
+	end
+end
+
+-- Add position lock toggle
+rebirthFarmFolder:AddSwitch("Lock Position", function(bool)
+	if bool then
+		-- Get current position and lock it
+		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+			local currentPosition = player.Character.HumanoidRootPart.CFrame
+			lockPlayerPosition(currentPosition)
+		end
+	else
+		-- Unlock position
+		unlockPlayerPosition()
+	end
+end)
 
 
 local killerTab = window:AddTab("Killer")
