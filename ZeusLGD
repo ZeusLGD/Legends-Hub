@@ -18,7 +18,7 @@ if not Library then return end
 
 local Window = Library:CreateWindow{
     Title = "Legends Hub",
-    SubTitle = "| by ZeusLGD",
+    SubTitle = "| By ZeusLGD",
     TabWidth = 160,
     Size = UDim2.fromOffset(1087, 690.5),
     Resize = true,
@@ -414,7 +414,7 @@ end)
 
 Tabs.Rebirth:AddSection("Auto Rebirth")
 
--- Auto Rebirth Infinito
+-- Auto Rebirth
 Tabs.Rebirth:AddToggle("AutoRebirthToggle", {
     Title = "Auto Rebirth",
     Default = false
@@ -459,81 +459,71 @@ end)
 
 -- Fast Rebirths (Only Packs)
 Tabs.Rebirth:AddToggle("FastRebirthsToggle", {
-    Title = "Fast Rebirths",
+    Title = "Fast Rebirths (Need 7-8 Packs)",
     Default = false
 }):OnChanged(function(state)
     if state then
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/ZeusLGD/Fast-Rebirth/refs/heads/main/ZeusLGD"))()
+            _G.fastGrindActive = true
+            task.spawn(function()
+                while _G.fastGrindActive do
+                    -- Swift Samurai
+                    equipPetsByName("Swift Samurai")
+
+                    local rebirths = player.leaderstats.Rebirths.Value
+                    local strengthTarget = 10000 + (rebirths * 5000)
+                    if player.ultimatesFolder:FindFirstChild("Golden Rebirth") then
+                        local golden = player.ultimatesFolder["Golden Rebirth"].Value
+                        strengthTarget = math.floor(strengthTarget * (1 - (golden * 0.1)))
+                    end
+
+                    local seat = getJungleBarLiftSeat()
+                    if seat then
+                        player.Character.HumanoidRootPart.CFrame = seat.CFrame * CFrame.new(0, 3, 0)
+                        player.Character.Humanoid.Sit = true
+                        task.wait(0.5)
+                    end
+
+                    while player.leaderstats.Strength.Value < strengthTarget and _G.fastGrindActive do
+                        for _ = 1, 10 do
+                            muscleEvent:FireServer("rep")
+                        end
+                        task.wait(0.01)
+                    end
+
+                    -- Tribal Overlord
+                    equipPetsByName("Tribal Overlord")
+                    task.wait(0.5)
+
+                    local before = player.leaderstats.Rebirths.Value
+                    repeat
+                        replicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+                        task.wait(0.1)
+                    until player.leaderstats.Rebirths.Value > before or not _G.fastGrindActive
+
+                    task.wait(0.5)
+                end
+            end)
         end)
         if not success then
-            warn("[Fast Rebirths] Erro ao carregar script externo:", err)
+            warn("Erro ao iniciar Fast Rebirths:", err)
         end
+    else
+        _G.fastGrindActive = false
     end
 end)
 
+Tabs.Rebirth:AddToggle("FastStrengthToggle", {
+    Title = "Fast Strength (Need 7-8 Packs)",
+    Default = false
+}):OnChanged(function(state)
+    if state then
+        local success, err = pcall(function()
 		
-Tabs.Strength:AddToggle("Fast Strength", {
-    Title = "Fast Strenth",
-}}function(bool)
-	if _G.fastGrindActive then
-		_G.fastGrindActive = false
-		print("Grind parado.")
-		unequipAllPets()
-		return
-	end
-
-	if not bool then
-		unequipAllPets()
-		return
-	end
-
-	_G.fastGrindActive = true
-	print("Grind iniciado.")
-
-	equipUniquePet("Swift Samurai")
-
-	local player = game:GetService("Players").LocalPlayer
-	local delay = 0
-	local loopAmount = 12.9
-
-	for i = 1, loopAmount do
-		task.spawn(function()
-			while _G.fastGrindActive do
-				player.muscleEvent:FireServer("rep")
-				task.wait(delay)
-			end
-		end)
-	end
-
-	task.spawn(function()
-		while _G.fastGrindActive do
-			if math.random() < 0.9 then
-				player.muscleEvent:FireServer("rep")
-			end
-			task.wait(delay)
-		end
-	end)
-
-	task.spawn(function()
-		while _G.fastGrindActive do
-			local pingStat = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]
-			local ping = pingStat and pingStat:GetValue() or 0
-
-			if ping > 500 then
-				delay = 0.002
-			else
-				delay = 0
-			end
-
-			print("Delay:", delay, "Ping:", ping)
-			task.wait(1)
-		end
-	end)
-end)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/ZeusLGD/Fast-Strength/refs/heads/main/Zeus"))()
         end)
         if not success then
-            warn("[Fast Strength] Erro ao carregar script externo:", err)
+            warn("[Fast Rebirths] Erro ao carregar script externo:", err)
         end
     end
 end)
