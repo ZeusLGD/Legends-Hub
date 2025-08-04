@@ -412,6 +412,9 @@ Tabs.Main:AddToggle("AutoJoinBrawlToggle", {
     end
 end)
 
+
+Tabs.Rebirth:AddSection("Target Rebirth")
+
 -- Target rebirth input - direct text input
 rebirthsFolder:AddTextBox("Rebirth Target", function(text)
 	local newValue = tonumber(text)
