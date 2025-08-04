@@ -457,6 +457,39 @@ Tabs.Rebirth:AddToggle("AutoSizeToggle", {
     end
 end)
 
+-- Fast Rebirths (Only Packs)
+Tabs.Rebirth:AddToggle("FastRebirthsToggle", {
+    Title = "Fast Rebirths (Need 7-8 Packs)",
+    Default = false
+}):OnChanged(function(state)
+    if state then
+        local success, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ZeusLGD/Fast-Rebirth/refs/heads/main/ZeusLGD"))()
+        end)
+        if not success then
+            warn("[Fast Rebirths] Erro ao carregar script externo:", err)
+        end
+    end
+end)
+
+Tabs.Rebirth:AddToggle("FastStrengthToggle", {
+    Title = "Fast Strength (Need 7-8 Packs)",
+    Default = false
+}):OnChanged(function(state)
+    if state then
+        _G.fastGrindActive = true
+        local success, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ZeusLGD/Fast-Strength/refs/heads/main/Zeus"))()
+        end)
+        if not success then
+            warn("[Fast Strength] Erro ao carregar script externo:", err)
+        end
+    else
+        _G.fastGrindActive = false
+        print("Fast Strength desativado.")
+    end
+end)
+
 
 -- Hide All Frames
 Tabs.Rebirth:AddToggle("HideFramesToggle", {
