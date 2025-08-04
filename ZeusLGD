@@ -32,8 +32,8 @@ local Tabs = {
     Home = Window:CreateTab{ Title = "Home", Icon = "house" },
     Main = Window:CreateTab{ Title = "Main", Icon = "phosphor-users-bold" },
     Rocks = Window:CreateTab{ Title = "Rocks", Icon = "mountain" },
-    Rebirth = Window:CreateTab{ Title = "Auto Rebirths", Icon = "biceps-flexed" },
-    Killing = Window:CreateTab{ Title = "Auto Kill", Icon = "skull" },
+    Rebirth = Window:CreateTab{ Title = "Rebirths", Icon = "biceps-flexed" },
+    Killing = Window:CreateTab{ Title = "Killing", Icon = "skull" },
     Teleport = Window:CreateTab{ Title = "Teleport", Icon = "tree-palm" },
     Status = Window:CreateTab{ Title = "Status", Icon = "circle-plus" },
     Crystal = Window:CreateTab{ Title = "Crystal", Icon = "gem" },
@@ -464,13 +464,123 @@ Tabs.Rebirth:AddToggle("FastRebirthsToggle", {
 }):OnChanged(function(state)
     if state then
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/ZeusLGD/Fast-Rebirth/refs/heads/main/ZeusLGD"))()
+            
+	task.spawn(function()
+		while isRunning do
+			local currentRebirths = player.leaderstats.Rebirths.Value
+			local rebirthCost = 10000 + (5000 * currentRebirths)
+
+			if player.ultimatesFolder:FindFirstChild("Golden Rebirth") then
+				local goldenRebirths = player.ultimatesFolder["Golden Rebirth"].Value
+				rebirthCost = math.floor(rebirthCost * (1 - (goldenRebirths * 0.1)))
+			end
+
+			unequipAllPets()
+			task.wait(0.2)
+			equipUniquePet("Swift Samurai")
+
+			-- Subloop pra fazer rep até força atingir o necessário
+			while isRunning and player.leaderstats.Strength.Value < rebirthCost do
+				for i = 1, 10 do
+					player.muscleEvent:FireServer("rep")
+				end
+				task.wait(0.04)
+			end
+
+			-- Só equipa Tribal depois de atingir o rebirthCost
+			unequipAllPets()
+			task.wait(0.2)
+			equipUniquePet("Tribal Overlord")
+			task.wait(0.4)
+
+			local machine = findMachine("Jungle Bar Lift")
+			if machine and machine:FindFirstChild("interactSeat") then
+				player.Character.HumanoidRootPart.CFrame = machine.interactSeat.CFrame * CFrame.new(0, 3, 0)
+				repeat
+					task.wait(0.25)
+					pressE()
+				until player.Character.Humanoid.Sit
+			end
+
+			local initialRebirths = player.leaderstats.Rebirths.Value
+			repeat
+				ReplicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+				task.wait(0.5)
+			until player.leaderstats.Rebirths.Value > initialRebirths or not isRunning
+
+			if not isRunning then break end
+			task.wait(0.2)
+		end
+
         end)
         if not success then
             warn("[Fast Rebirths] Erro ao carregar script externo:", err)
         end
     end
 end)
+
+-- Fast Strength (Only Packs)
+Tabs.Rebirth:AddToggle("FastStrengthToggle", {
+    Title = "Fast Strength",
+    Default = false
+}):OnChanged(function(state)
+    if state then
+        local success, err = pcall(function()
+           
+print("Grind parado.")
+		unequipAllPets()
+		return
+	end
+
+	if not bool then
+		unequipAllPets()
+		return
+	end
+
+	_G.fastGrindActive = true
+	print("Grind iniciado.")
+
+	equipUniquePet("Swift Samurai")
+
+	local player = game:GetService("Players").LocalPlayer
+	local delay = 0
+	local loopAmount = 12
+
+	for i = 1, loopAmount do
+		task.spawn(function()
+			while _G.fastGrindActive do
+				player.muscleEvent:FireServer("rep")
+				task.wait(delay)
+			end
+		end)
+	end
+
+	task.spawn(function()
+		while _G.fastGrindActive do
+			if math.random() < 0.9 then
+				player.muscleEvent:FireServer("rep")
+			end
+			task.wait(delay)
+		end
+	end)
+
+	task.spawn(function()
+		while _G.fastGrindActive do
+			local pingStat = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]
+			local ping = pingStat and pingStat:GetValue() or 0
+
+			if ping > 500 then
+				delay = 0.002
+			else
+				delay = 0
+			end
+
+			print("Delay:", delay, "Ping:", ping)
+			task.wait(1)
+		end
+	end)
+end)
+
 
 -- Hide All Frames
 Tabs.Rebirth:AddToggle("HideFramesToggle", {
@@ -484,6 +594,8 @@ Tabs.Rebirth:AddToggle("HideFramesToggle", {
         end
     end
 end)
+
+
 Tabs.Rocks:AddSection("Auto Punch Rocks")
 
 local player = game.Players.LocalPlayer
