@@ -414,9 +414,9 @@ end)
 
 Tabs.Rebirth:AddSection("Auto Rebirth")
 
--- Auto Rebirth Infinito
+-- Auto Rebirth
 Tabs.Rebirth:AddToggle("AutoRebirthToggle", {
-    Title = "Auto Rebirth Infinito",
+    Title = "Auto Rebirth",
     Default = false
 }):OnChanged(function(state)
     if state then
@@ -464,8 +464,7 @@ Tabs.Rebirth:AddToggle("FastRebirthsToggle", {
 }):OnChanged(function(state)
     if state then
         local success, err = pcall(function()
-            
-	task.spawn(function()
+         task.spawn(function()
 		while isRunning do
 			local currentRebirths = player.leaderstats.Rebirths.Value
 			local rebirthCost = 10000 + (5000 * currentRebirths)
@@ -519,6 +518,7 @@ Tabs.Rebirth:AddToggle("FastRebirthsToggle", {
     end
 end)
 
+
 -- Fast Strength (Only Packs)
 Tabs.Rebirth:AddToggle("FastStrengthToggle", {
     Title = "Fast Strength",
@@ -526,8 +526,7 @@ Tabs.Rebirth:AddToggle("FastStrengthToggle", {
 }):OnChanged(function(state)
     if state then
         local success, err = pcall(function()
-           
-print("Grind parado.")
+           print("Grind parado.")
 		unequipAllPets()
 		return
 	end
