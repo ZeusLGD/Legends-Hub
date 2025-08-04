@@ -1,4 +1,4 @@
--- [LEGENDS HUB CORRIGIDO] - PARTE 1
+-- [LEGENDS HUB ]
 local function safeLoad(url)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(url))()
@@ -457,14 +457,14 @@ Tabs.Rebirth:AddToggle("AutoSizeToggle", {
     end
 end)
 
--- Fast Rebirths (script externo)
+-- Fast Rebirths (Only Packs)
 Tabs.Rebirth:AddToggle("FastRebirthsToggle", {
-    Title = "Fast Rebirths (externo)",
+    Title = "Fast Rebirths (Need 7-8 Packs)",
     Default = false
 }):OnChanged(function(state)
     if state then
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttvkaiser/Nebula-Hub/refs/heads/main/Muscle-Legends/Ddd.txt"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ZeusLGD/Fast-Rebirth/refs/heads/main/ZeusLGD"))()
         end)
         if not success then
             warn("[Fast Rebirths] Erro ao carregar script externo:", err)
@@ -1387,7 +1387,7 @@ Tabs.Misc:CreateButton{
 
 local Paragraph = Tabs.Credits:CreateParagraph("Credits", {
     Title = "Script Credits",
-    Content = "This script was made by ZeusLGD (Emperor).\nHe is the creator and owner of this script. All rights reserved."
+    Content = "This script was made by ZeusLGD is the creator and owner of this script. All rights reserved."
 })
 
 -- Addons:
