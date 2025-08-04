@@ -412,6 +412,27 @@ Tabs.Main:AddToggle("AutoJoinBrawlToggle", {
     end
 end)
 
+-- Target rebirth input - direct text input
+rebirthsFolder:AddTextBox("Rebirth Target", function(text)
+	local newValue = tonumber(text)
+	if newValue and newValue > 0 then
+		targetRebirthValue = newValue
+		updateStats() -- Call the stats update function
+
+		game:GetService("StarterGui"):SetCore("SendNotification", {
+			Title = "Objetivo Atualizado",
+			Text = "Novo Objetivo: " .. tostring(targetRebirthValue) .. " renascimentos",
+			Duration = 0
+		})
+	else
+		game:GetService("StarterGui"):SetCore("SendNotification", {
+			Title = "Entrada Inválida",
+			Text = "Por favor coloque um número válido maior que 0",
+			Duration = 0
+		})
+	end
+end)
+
 Tabs.Rebirth:AddSection("Auto Rebirth")
 
 -- Auto Rebirth
